@@ -6,7 +6,15 @@ export default function OrderList() {
     const [newOrder, setNewOrder] = useState({
         orderId: "",
         customerId: "",
-        items: [],
+        items: [
+            {
+                productId: "",
+                productName: "",
+                quantity: 0,
+                unitPrice: 0,
+                currency: ""
+            }
+        ],
         shippingAddress: {
             street: "",
             city: "",
@@ -19,6 +27,7 @@ export default function OrderList() {
         status: "",
         createdAt: "",
     });
+
     const [editMode, setEditMode] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
 
@@ -36,8 +45,6 @@ export default function OrderList() {
     };
 
     const handleSaveOrder = async () => {
-   
-
         try {
             if (editMode) {
                 await updateOrder(selectedId, newOrder);
@@ -51,7 +58,15 @@ export default function OrderList() {
             setNewOrder({
                 orderId: "",
                 customerId: "",
-                items: [],
+                items: [
+                    {
+                        productId: "",
+                        productName: "",
+                        quantity: 0,
+                        unitPrice: 0,
+                        currency: ""
+                    }
+                ],
                 shippingAddress: {
                     street: "",
                     city: "",
@@ -65,7 +80,7 @@ export default function OrderList() {
                 createdAt: "",
             });
 
-            fetchOrders(); 
+            fetchOrders();
         } catch (error) {
             console.error("Erreur lors de la sauvegarde de la commande", error);
             alert("Une erreur est survenue. Veuillez réessayer.");
@@ -85,7 +100,7 @@ export default function OrderList() {
             createdAt: order.createdAt,
         });
         setEditMode(true);
-        await setSelectedId(order.id); 
+        setSelectedId(order.id);
     };
 
     const handleDelete = async (id) => {
@@ -93,12 +108,33 @@ export default function OrderList() {
             try {
                 await deleteOrder(id);
                 alert("Commande supprimée avec succès.");
-                fetchOrders(); 
+                fetchOrders();
             } catch (error) {
                 console.error("Erreur lors de la suppression de la commande", error);
                 alert("Une erreur est survenue lors de la suppression.");
             }
         }
+    };
+
+    const handleItemChange = (index, field, value) => {
+        const updatedItems = [...newOrder.items];
+        updatedItems[index][field] = value;
+        setNewOrder({ ...newOrder, items: updatedItems });
+    };
+
+    const addItem = () => {
+        setNewOrder({
+            ...newOrder,
+            items: [
+                ...newOrder.items,
+                { productId: "", productName: "", quantity: 0, unitPrice: 0, currency: "" }
+            ]
+        });
+    };
+
+    const removeItem = (index) => {
+        const updatedItems = newOrder.items.filter((_, i) => i !== index);
+        setNewOrder({ ...newOrder, items: updatedItems });
     };
 
     return (
@@ -129,6 +165,42 @@ export default function OrderList() {
                         setNewOrder({
                             ...newOrder,
                             shippingAddress: { ...newOrder.shippingAddress, street: e.target.value },
+                        })
+                    }
+                />
+                <input
+                    className="border px-4 py-2 rounded-md w-full mb-4"
+                    type="text"
+                    placeholder="City"
+                    value={newOrder.shippingAddress.city}
+                    onChange={(e) =>
+                        setNewOrder({
+                            ...newOrder,
+                            shippingAddress: { ...newOrder.shippingAddress, city: e.target.value },
+                        })
+                    }
+                />
+                <input
+                    className="border px-4 py-2 rounded-md w-full mb-4"
+                    type="text"
+                    placeholder="Postal Code"
+                    value={newOrder.shippingAddress.postalCode}
+                    onChange={(e) =>
+                        setNewOrder({
+                            ...newOrder,
+                            shippingAddress: { ...newOrder.shippingAddress, postalCode: e.target.value },
+                        })
+                    }
+                />
+                <input
+                    className="border px-4 py-2 rounded-md w-full mb-4"
+                    type="text"
+                    placeholder="Country"
+                    value={newOrder.shippingAddress.country}
+                    onChange={(e) =>
+                        setNewOrder({
+                            ...newOrder,
+                            shippingAddress: { ...newOrder.shippingAddress, country: e.target.value },
                         })
                     }
                 />
@@ -166,6 +238,60 @@ export default function OrderList() {
                     value={newOrder.createdAt}
                     onChange={(e) => setNewOrder({ ...newOrder, createdAt: e.target.value })}
                 />
+
+                <h4 className="text-lg mb-2">Items</h4>
+                {newOrder.items.map((item, index) => (
+                    <div key={index} className="w-full mb-4">
+                        <input
+                            className="border px-4 py-2 rounded-md w-full mb-2"
+                            type="text"
+                            placeholder="Product ID"
+                            value={item.productId}
+                            onChange={(e) => handleItemChange(index, "productId", e.target.value)}
+                        />
+                        <input
+                            className="border px-4 py-2 rounded-md w-full mb-2"
+                            type="text"
+                            placeholder="Product Name"
+                            value={item.productName}
+                            onChange={(e) => handleItemChange(index, "productName", e.target.value)}
+                        />
+                        <input
+                            className="border px-4 py-2 rounded-md w-full mb-2"
+                            type="number"
+                            placeholder="Quantity"
+                            value={item.quantity}
+                            onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+                        />
+                        <input
+                            className="border px-4 py-2 rounded-md w-full mb-2"
+                            type="number"
+                            placeholder="Unit Price"
+                            value={item.unitPrice}
+                            onChange={(e) => handleItemChange(index, "unitPrice", e.target.value)}
+                        />
+                        <input
+                            className="border px-4 py-2 rounded-md w-full mb-2"
+                            type="text"
+                            placeholder="Currency"
+                            value={item.currency}
+                            onChange={(e) => handleItemChange(index, "currency", e.target.value)}
+                        />
+                        <button
+                            className="bg-red-500 text-white px-4 py-2 rounded-md"
+                            onClick={() => removeItem(index)}
+                        >
+                            Remove Item
+                        </button>
+                    </div>
+                ))}
+                <button
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4"
+                    onClick={addItem}
+                >
+                    Add Item
+                </button>
+
                 <button
                     className="bg-green-500 text-white px-6 py-2 rounded-md"
                     onClick={handleSaveOrder}
@@ -197,7 +323,7 @@ export default function OrderList() {
                             <td className="px-4 py-2">
                                 {order.items.map((item, index) => (
                                     <div key={index}>
-                                        {item.productName} (x{item.quantity})
+                                        {item.productId}  {item.productName}  {item.quantity}  {item.currency}  (x{item.quantity})
                                     </div>
                                 ))}
                             </td>
